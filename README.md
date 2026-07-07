@@ -179,3 +179,8 @@ Free to use and modify for personal use.
 ---
 
 **Enjoy drag-to-copy! 🎉**
+
+# my-test-repo
+This is a test repository for the Drag to Copy extension.
+
+Creator: Pramod AI

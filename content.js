@@ -6,6 +6,9 @@
   // Minimum text length to trigger copy
   const MIN_TEXT_LENGTH = 2;
 
+  // Prevent duplicate copies when both capture and bubble listeners fire
+  const DUPLICATE_DELAY = 600; // ms
+  let lastProcessed = { text: '', time: 0 };
   // Toast notification timeout (ms)
   const TOAST_DURATION = 1500;
 
@@ -54,7 +57,11 @@
    */
   function isInputElement(element) {
     const tagName = element.tagName.toLowerCase();
-    return tagName === 'input' || tagName === 'textarea';
+    return (
+      tagName === 'input' ||
+      tagName === 'textarea' ||
+      element.isContentEditable
+    );
   }
 
   /**
@@ -97,16 +104,16 @@
    * Main handler for text selection on mouseup
    */
   async function handleMouseUp(event) {
+    // Quick ignore: input / editable
+    if (event.target && isInputElement(event.target)) {
+      console.log('[DragToCopy] Event target is input/editable, skipping');
+      return;
+    }
+
     // Check if extension is enabled
     chrome.storage.sync.get({ dragToCopyEnabled: true }, (result) => {
       if (!result.dragToCopyEnabled) {
         console.log('[DragToCopy] Extension disabled, skipping');
-        return;
-      }
-
-      // Don't copy if user was typing in an input
-      if (event.target && isInputElement(event.target)) {
-        console.log('[DragToCopy] Event target is input, skipping');
         return;
       }
 
@@ -115,16 +122,27 @@
 
       setTimeout(() => {
         const selection = window.getSelection();
-        if (!selection) {
-          return;
-        }
+        if (!selection) return;
 
         const selectedText = selection.toString().trim();
+
+        // Deduplicate rapid duplicate events (capture + bubble)
+        const now = Date.now();
+        if (
+          selectedText &&
+          selectedText === lastProcessed.text &&
+          now - lastProcessed.time < DUPLICATE_DELAY
+        ) {
+          // Too soon after the last processed selection
+          return;
+        }
 
         // Only copy if meaningful text selected
         if (selectedText.length >= MIN_TEXT_LENGTH) {
           copyToClipboard(selectedText).then((success) => {
             if (success) {
+              lastProcessed.text = selectedText;
+              lastProcessed.time = Date.now();
               showToast(event.clientX, event.clientY);
               console.log('[DragToCopy] Copied:', selectedText.substring(0, 50));
             }
