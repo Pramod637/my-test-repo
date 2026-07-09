@@ -156,6 +156,14 @@ Open Developer Tools (F12) and go to the **Console** tab to see logs like:
 - **scripting**: Inject content script
 - **<all_urls>**: Run on all websites
 
+## Learning Notes
+
+This repository is now used for a simple Git practice example:
+- `git status` shows changed files
+- `git add` stages changes
+- `git commit` saves a snapshot
+- `git log` shows the commit history
+
 ## License
 
 Free to use and modify for personal use.
