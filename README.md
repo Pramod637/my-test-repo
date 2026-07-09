@@ -163,6 +163,7 @@ This repository is now used for a simple Git practice example:
 - `git add` stages changes
 - `git commit` saves a snapshot
 - `git log` shows the commit history
+- `git push` sends commits to the remote repository
 
 ## License
 
